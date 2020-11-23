@@ -1,6 +1,8 @@
 package authn_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -65,4 +67,32 @@ func TestCopy(t *testing.T) {
 	assert.NotEqual(original.Header, copied.Header)
 	assert.NotEqual(original.MatchContext.URL.Host, copied.MatchContext.URL.Host)
 	assert.NotEqual(original.MatchContext.RegexpCaptureGroups, copied.MatchContext.RegexpCaptureGroups)
+}
+
+func TestUnmarshalIntoAuthenticationSession(t *testing.T) {
+	// From example: https://www.ory.sh/oathkeeper/docs/pipeline/mutator#hydrator
+	hydratorUpstreamPayload := bytes.NewBufferString(`{
+		"subject": "anonymous",
+		"extra": {
+			"foo": "bar"
+		},
+		"header": {
+			"foo": ["bar1", "bar2"]
+		},
+		"match_context": {
+			"regexp_capture_groups": ["http", "foo"],
+			"url": "http://domain.com/foo"
+		}
+	}`)
+	sessionFromUpstream := authn.AuthenticationSession{}
+	err := json.NewDecoder(hydratorUpstreamPayload).Decode(&sessionFromUpstream)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, sessionFromUpstream.Subject, "anonymous")
+	assert.Equal(t, sessionFromUpstream.Extra["foo"], "bar")
+	assert.Equal(t, sessionFromUpstream.MatchContext.RegexpCaptureGroups[0], "http")
+	assert.Equal(t, sessionFromUpstream.MatchContext.URL.Host, "domain.com")
+	assert.Equal(t, sessionFromUpstream.MatchContext.URL.Scheme, "http")
+	assert.Equal(t, sessionFromUpstream.MatchContext.URL.Path, "/foo")
 }

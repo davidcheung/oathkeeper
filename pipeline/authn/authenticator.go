@@ -46,6 +46,25 @@ type AuthenticationSession struct {
 	MatchContext MatchContext           `json:"match_context"`
 }
 
+// func (mc *MatchContext) UnmarshalJSON(b []byte) error {
+// 	tmp := struct {
+// 		RegexpCaptureGroups []string `json:"regexp_capture_groups,omitempty"`
+// 		URL                 string   `json:"url"`
+// 	}{}
+
+// 	err := json.Unmarshal(b, &tmp)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	mc.RegexpCaptureGroups = tmp.RegexpCaptureGroups
+
+// 	url, urlParseErr := url.Parse(tmp.URL)
+// 	if urlParseErr == nil {
+// 		mc.URL = url
+// 	}
+// 	return urlParseErr
+// }
+
 type MatchContext struct {
 	RegexpCaptureGroups []string `json:"regexp_capture_groups"`
 	URL                 *url.URL `json:"url"`
